@@ -44,14 +44,17 @@ class Game:
             self.all_players.append(bot_in_list)
         return self.all_players
 
+    def open_hidden_cards(self):
+        self.game_dealer.reveal_card()
+        for bot in self.bot_players:
+            bot.reveal_card()
+
     def initial_deal(self):
         for player in self.all_players:
             for _ in range(2):
                 player.add_card(self.game_deck.get_card())
         self.print_all_players_cards()
-        self.game_dealer.reveal_card()
-        for bot in self.bot_players:
-            bot.reveal_card()
+        self.open_hidden_cards()
 
     def print_all_players_cards(self):
         for player in self.all_players:
@@ -62,11 +65,7 @@ class Game:
                 print(f'{player.name} cards:\n{cards}')
             if not player.hidden_card:
                 print(f'Points: {player.player_points}\n')
-
-    # def print_all_players_cards(self, hide_dealer_card=False):
-    #     for player in self.all_players:
-    #         print(f'{player.name} cards:\n{player.print_cards(hide_dealer_card)}')
-    #         print(f'Points: {player.player_points}\n')
+            time.sleep(1)
 
     def making_a_bets(self):
         for player in self.all_players:
@@ -85,48 +84,59 @@ class Game:
         if dealer_points > 21:
             print('All players in the game are winners!')
             return True  # гравці виграли
-        else:
-            for player in self.all_players:
-                winners = 0
-                if player.player_points == 21:
-                    winners += 1
-                    print(f'{player.name}, you are winner with 21 points!')
-                    return True
-                if player.player_points > 21:
-                    print(f'{player.name}, you are busted! Hit the road!')
-                    self.all_players.remove(player)
-            if len(self.all_players) == 1:
-                winners += 1
-                print(f'{self.all_players[0].name}, you are the winner!')
 
-            if winners != 0 or [player.player_points for player in self.all_players if player.player_points==self.game_dealer.player_points]:
-                return True  # є переможець
-            else:
-                return False  # гра триває
+        winners = [player for player in self.all_players if player.player_points == 21]
+        if winners:
+            for player in winners:
+                print(f'{player.name}, you are a winner with 21 points!')
+            return winners  # є переможець
 
+        losers = [player for player in self.all_players if player.player_points > 21]
+        if losers:
+            for loser in losers:
+                print(f'{loser.name}, you are busted! Hit the road!')
+                self.all_players.remove(loser)
 
+        if len(self.all_players) == 1 and self.all_players[0].player_points <= 21:
+            print(f'{self.all_players[0].name}, you are the only winner!')
+            winners.append(self.all_players[0])
+            return winners
+
+        return False  # гра триває
 
     def game_round(self):
         while True:
-            if self.check_winner():
+            winners_list = self.check_winner()
+            if winners_list:
+                self.distribute_prizes(winners_list)
                 break
             else:
                 self.asking_card()
             self.print_all_players_cards()
 
-    def distribute_prizes(self):
-        for player in self.all_players:
+    def win21(self, winners):
+        winners21 = []
+        for player in winners:
             if player.player_points == 21:
-                prize = (1.5 * player.player_bet).__round__(2)
-                player.player_money += prize  # виграш з бету + сам бет
-                print(f'{player.name}, your prize is {prize}! Take your money!')
-            elif player.player_points <= 21 and player.player_points > self.game_dealer.player_points:
-                prize = 2 * player.player_bet
-                player.player_money += prize  # виграш з бету + сам бет
-                print(f'{player.name}, your prize is {prize}! Take your money!')
-            elif player.player_points == self.game_dealer.player_points and not isinstance(player, Dealer):
-                print(f'OMG! It\'s a hit! {player.name} and {self.game_dealer.name}, you have the same points!\n'
-                      f'Take your bet back.')
+                winners21.append(player)
+
+        for winner21 in winners21:
+            prize = (1.5 * winner21.player_bet).__round__(2)
+            winner21.player_money += prize  # виграш з бету + сам бет
+            print(f'{winner21.name}, your prize is {prize}! Take your money!')
+
+    def distribute_prizes(self, winners):
+        if self.win21(winners):
+            return True
+        else:
+            for player in self.all_players:
+                if 21 > player.player_points > self.game_dealer.player_points:
+                    prize = 2 * player.player_bet
+                    player.player_money += prize  # виграш з бету + сам бет
+                    print(f'{player.name}, your prize is {prize}! Take your money!')
+                elif player.player_points == self.game_dealer.player_points and not isinstance(player, Dealer):
+                    print(f'OMG! It\'s a hit! {player.name} and {self.game_dealer.name}, you have the same points!\n'
+                          f'Take your bet back.')
 
     def start_game(self):
         print('Hello! Nice to see you here:) Let\'s start our BLACKJACK GAME!')
@@ -137,9 +147,4 @@ class Game:
         print('\nLet\'s open our cards!\n')
         time.sleep(1)
         self.print_all_players_cards()
-        self.check_winner()
-        self.game_round()
-        self.distribute_prizes()
-
-
-
+        self.game_round()  # Викликаємо метод game_round()

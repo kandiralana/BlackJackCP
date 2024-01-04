@@ -57,7 +57,6 @@ class AbstractPlayer(ABC):
                 cards_to_print = player_hand_cards(*self.player_cards)
                 return cards_to_print
             else:
-                # return print(f'{self.name} looked over the playing cards')
                 return False
 
 
