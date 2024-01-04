@@ -66,21 +66,22 @@ class Player(AbstractPlayer):
             except (TypeError, AttributeError, ValueError):
                 print('Can\'t accept incorrect input. Try again!')
             except NumberException:
-                print('Your number of players is not in the accessible range. Please, try again!')
+                print('Your input is not in the accessible range. Please, try again!')
             else:
                 self.player_bet = player_bet_input
                 break
         print(f'{self.name} put {self.player_bet}$')
+        self.player_money -= self.player_bet
         return self.player_bet
 
     def hit_or_stand(self):
         while True:
             try:
                 player_hit_or_stand_input = input(f'\nDo you want to take one more card? (y/n): ').lower().strip()
-            except (TypeError, AttributeError, ValueError):
-                print('Can\'t accept incorrect input. Try again!\n')
-            except player_hit_or_stand_input != 'y' or player_hit_or_stand_input != 'n':
-                print('Can\'t understand you. Try again!\n')
+                if player_hit_or_stand_input not in ['y', 'n']:
+                    raise ValueError
+            except ValueError:
+                print('Invalid input. Please enter "y" or "n".')
             else:
                 break
 
@@ -107,7 +108,7 @@ class BotPlayer(AbstractPlayer):
         return bot_name
 
     def make_a_bet(self):
-        self.player_bet = random.randint(self.min_bet, self.max_bet)
+        self.player_bet = random.randint(self.min_bet, self.player_money)
         print(f'{self.name} put {self.player_bet}$')
         return self.player_bet
 
@@ -134,7 +135,7 @@ class Dealer(AbstractPlayer):
         return self.hidden_card
 
     def make_a_bet(self):
-        self.player_bet = random.randint(self.min_bet, self.max_bet)
+        self.player_bet = random.randint(self.min_bet, self.player_money)
         print(f'{self.name} put {self.player_bet}$')
         return self.player_bet
 

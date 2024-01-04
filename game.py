@@ -15,6 +15,19 @@ class Game:
         self.player = Player()
         self.all_players = []
 
+    def clear_cards(self):
+        self.player.player_cards.clear()
+        for _ in range(2):
+            self.player.add_card(self.game_deck.get_card())
+        return self.player.player_cards
+
+    def reset_game(self):
+        self.game_deck = Deck()
+        self.game_dealer = Dealer()
+        self.bot_players = []
+        self.player.player_cards = self.clear_cards()
+        self.all_players = []
+
     def _generate_bot_players(self):
         while True:
             try:
@@ -51,8 +64,9 @@ class Game:
 
     def initial_deal(self):
         for player in self.all_players:
-            for _ in range(2):
-                player.add_card(self.game_deck.get_card())
+            if not player.count_player_points():
+                for _ in range(2):
+                    player.add_card(self.game_deck.get_card())
         self.print_all_players_cards()
         self.open_hidden_cards()
 
@@ -86,7 +100,7 @@ class Game:
     def check_winner(self):
         dealer_points = self.game_dealer.count_player_points()
 
-        losers = [player for player in self.all_players if player.player_points > 21]
+        losers = [player for player in self.all_players if player.player_points > 21 and not isinstance(player, Dealer)]
         if losers:
             print('\n')
             for loser in losers:
@@ -94,22 +108,29 @@ class Game:
                 self.all_players.remove(loser)
 
         if dealer_points > 21:
-            print('\nAll players in the game are winners!')
+            print('\nThe DEALER is busted! All players in the game are winners!')
+            self.all_players.remove(self.game_dealer)
             for player in self.all_players:
-                print(f'{player.name}, congrats!')
+                print(f'{player.name}, congrats! Take your bet {player.player_bet}$ back')
+                player.player_money += (1.5 * player.player_bet)
                 time.sleep(1)
-            return []  # гравці виграли
+            return True  # гравці виграли
 
-        winners = [player for player in self.all_players if player.player_points == 21]
-        if winners:
-            for player in winners:
-                print(f'\n{player.name}, you are a winner with 21 points!')
-            return winners  # є переможець
+        winners21 = [player for player in self.all_players if player.player_points == 21]
+        if winners21:
+            for winner21 in winners21:
+                print(f'\n{winner21.name}, you are a winner with 21 points!')
 
-        if len(self.all_players) == 1 and self.all_players[0].player_points <= 21:
+                prize = (2 * winner21.player_bet).__round__(2)
+                winner21.player_money += prize  # виграш з бету + сам бет
+                print(f'{winner21.name}, your prize is {prize}! Take your money!')
+
+            return True  # є переможець
+
+        if len(self.all_players) == 1 and self.all_players[0].player_points < 21:
             print(f'{self.all_players[0].name}, you are the only winner!')
-            winners.append(self.all_players[0])
-            return winners
+            self.all_players[0].player_money += (1.5 * self.all_players[0].player_bet)
+            return True
 
         return False  # гра триває
 
@@ -117,55 +138,69 @@ class Game:
         while True:
             winners_list = self.check_winner()
             if winners_list:
-                self.distribute_prizes(winners_list)
                 break
             else:
                 answers = self.asking_card()
 
-            if not any(answers):  # Якщо всі елементи списку False
-                print('\nLet\'s detect a winner (or winners😉)\n')
-                time.sleep(2)
-                self.distribute_prizes(False)
-                break
+                if not any(answers):  # Якщо всі елементи списку False
+                    print('\nLet\'s finish our game\n')
+                    time.sleep(2)
+                    self.distribute_prizes()
+                    break
+                else:
+                    self.print_all_players_cards()
+
+    def distribute_prizes(self):
+        for player in self.all_players:
+            if 21 > player.player_points > self.game_dealer.player_points:
+                prize = 1.5 * player.player_bet
+                player.player_money += prize  # виграш з бету + сам бет
+                print(f'{player.name}, you beat the DEALER\n'
+                      f'{player.name}, your prize is {prize}! Congrats and take your money!')
+            elif player.player_points == self.game_dealer.player_points and not isinstance(player, Dealer):
+                player.player_money += player.player_bet
+                print(
+                    f'OMG! It\'s a hit! {player.name} and {self.game_dealer.name}, you have the same points ({player.player_points})!\n'
+                    f'{player.name}, take your bet {player.player_bet}$ only back. Good luck next time!')
+                time.sleep(1)
+
+    def play_again_prompt(self):
+        while True:
+            try:
+                play_again_input = input('\nDo you want to play again? (y/n): ').lower().strip()
+                if play_again_input not in ['y', 'n']:
+                    raise ValueError
+            except ValueError:
+                print('Invalid input. Please enter "y" or "n".')
             else:
-                self.print_all_players_cards()
-
-    def win21(self, winners):
-        winners21 = []
-        for player in winners:
-            if player.player_points == 21:
-                winners21.append(player)
-
-        print('\n')
-        for winner21 in winners21:
-            prize = (1.5 * winner21.player_bet).__round__(2)
-            winner21.player_money += prize  # виграш з бету + сам бет
-            print(f'{winner21.name}, your prize is {prize}! Take your money!')
-
-    def distribute_prizes(self, winners):
-        if winners:
-            if self.win21(winners):
-                return True
-        else:
-            print('\n')
-            for player in self.all_players:
-                if 21 > player.player_points > self.game_dealer.player_points:
-                    prize = 2 * player.player_bet
-                    player.player_money += prize  # виграш з бету + сам бет
-                    print(f'{player.name}, your prize is {prize}! Take your money!')
-                elif player.player_points == self.game_dealer.player_points and not isinstance(player, Dealer):
-                    print(f'OMG! It\'s a hit! {player.name} and {self.game_dealer.name}, you have the same points ({player.player_points})!\n'
-                          f'{player.name}, take your bet {player.player_bet}$ only back. Good luck next time!')
-                    time.sleep(1)
+                if play_again_input == 'y':
+                    if self.player.player_money < self.player.min_bet:
+                        print("Sorry, you don't have enough money for the minimum bet. Game over.")
+                        return False
+                    else:
+                        return True
+                else:
+                    return False
 
     def start_game(self):
-        print('Hello! Nice to see you here:) Let\'s start our BLACKJACK GAME!')
-        self._generate_bot_players()
-        self.making_a_bets()
-        self.initial_deal()
-        time.sleep(2)
-        print('\nLet\'s open our cards!\n')
+        print('Hello! Nice to see you here:) Let\'s start our BLACKJACK GAME!\n')
         time.sleep(1)
-        self.print_all_players_cards()
-        self.game_round()  # Викликаємо метод game_round()
 
+        while True:
+            self._generate_bot_players()
+            self.making_a_bets()
+            self.initial_deal()
+            time.sleep(2)
+            print('\nLet\'s open our cards!\n')
+            time.sleep(1)
+            self.print_all_players_cards()
+            self.game_round()
+
+
+            print(f"\nYour current balance: ${self.player.player_money}\n")
+
+            if not self.play_again_prompt():
+                print('\nThank you for playing! Have a great day!\n')
+                break
+            else:
+                self.reset_game()  # Якщо гравець хоче грати ще раз, скидаємо гру до початкового стану
