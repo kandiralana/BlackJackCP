@@ -11,7 +11,7 @@ RANKS = {
     'Ace': 11,
     **{face: 10 for face in ['King', 'Queen', 'Jack']},
     **{str(i): i for i in range(2, 11)}
-}
+    }
 
 BOT_NAMES = ['Alice Johnson', 'Brian Martinez', 'Cynthia Lee', 'David Anderson', 'Emily Rodriguez',
              'Frank Mitchell', 'Grace Taylor', 'Henry Wright', 'Isabel Davis', 'Jack Turner',
