@@ -22,4 +22,4 @@ BOT_NAMES = ['Alice Johnson', 'Brian Martinez', 'Cynthia Lee', 'David Anderson',
 
 class NumberException(Exception):
     def __str__(self):
-        return 'Your number of players not in the accessible range. Please, try again!\n'
+        return 'Your input not in the accessible range. Please, try again!\n'

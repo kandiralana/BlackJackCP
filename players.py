@@ -36,14 +36,6 @@ class AbstractPlayer(ABC):
     def reveal_card(self):
         pass
 
-    # def print_cards(self):
-    #     self.player_points = self.count_player_points()
-    #     if isinstance(self, Dealer):
-    #         cards_to_print = dealer_hand_cards(*self.player_cards) if not self.hidden_card else dealer_hand_cards(*self.player_cards)
-    #     else:
-    #         cards_to_print = player_hand_cards(*self.player_cards)
-    #     return cards_to_print
-
     def print_cards(self):
         self.player_points = self.count_player_points()
         if isinstance(self, Dealer):
@@ -68,13 +60,13 @@ class Player(AbstractPlayer):
     def make_a_bet(self):
         while True:
             try:
-                player_bet_input = int(input(f'Make your bet ({self.min_bet}$-{self.max_bet}$): '))
-                if not (self.min_bet <= player_bet_input <= self.max_bet):
+                player_bet_input = int(input(f'\nMake your bet ({self.min_bet}$-{self.player_money}$): '))
+                if not (self.min_bet <= player_bet_input <= self.max_bet) or not (player_bet_input <= self.player_money):
                     raise NumberException
             except (TypeError, AttributeError, ValueError):
-                print('Can\'t accept incorrect input. Try again!\n')
+                print('Can\'t accept incorrect input. Try again!')
             except NumberException:
-                print('Your number of players is not in the accessible range. Please, try again!\n')
+                print('Your number of players is not in the accessible range. Please, try again!')
             else:
                 self.player_bet = player_bet_input
                 break
@@ -84,7 +76,7 @@ class Player(AbstractPlayer):
     def hit_or_stand(self):
         while True:
             try:
-                player_hit_or_stand_input = input(f'Do you want to take one more card? (y/n): ').lower().strip()
+                player_hit_or_stand_input = input(f'\nDo you want to take one more card? (y/n): ').lower().strip()
             except (TypeError, AttributeError, ValueError):
                 print('Can\'t accept incorrect input. Try again!\n')
             except player_hit_or_stand_input != 'y' or player_hit_or_stand_input != 'n':
@@ -147,7 +139,7 @@ class Dealer(AbstractPlayer):
         return self.player_bet
 
     def hit_or_stand(self):
-        if self.count_player_points() < 16:
+        if self.count_player_points() < 17:
             print(f'{self.name} takes one more card.')
             return True
         else:
