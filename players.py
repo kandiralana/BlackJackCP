@@ -47,7 +47,7 @@ class AbstractPlayer(ABC):
     def print_cards(self):
         self.player_points = self.count_player_points()
         if isinstance(self, Dealer):
-            cards_to_print = dealer_hand_cards(*self.player_cards) if not self.hidden_card else dealer_hand_cards(*self.player_cards)
+            cards_to_print = player_hand_cards(*self.player_cards) if not self.hidden_card else dealer_hand_cards(*self.player_cards)
             return cards_to_print
         elif isinstance(self, Player):
             cards_to_print = player_hand_cards(*self.player_cards)
@@ -57,13 +57,9 @@ class AbstractPlayer(ABC):
                 cards_to_print = player_hand_cards(*self.player_cards)
                 return cards_to_print
             else:
-                return print(f'{self.name} looked over the playing cards')
+                # return print(f'{self.name} looked over the playing cards')
+                return False
 
-
-    # def print_cards(self, hidden=False):
-    #     self.player_points = self.count_player_points()
-    #     cards_to_print = dealer_hand_cards(*self.player_cards) if hidden else player_hand_cards(*self.player_cards)
-    #     return cards_to_print
 
 
 class Player(AbstractPlayer):

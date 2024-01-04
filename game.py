@@ -55,7 +55,11 @@ class Game:
 
     def print_all_players_cards(self):
         for player in self.all_players:
-            print(f'{player.name} cards:\n{player.print_cards()}')
+            cards = player.print_cards()
+            if not cards:
+                print(f'{player.name} looked over the playing cards')
+            else:
+                print(f'{player.name} cards:\n{cards}')
             if not player.hidden_card:
                 print(f'Points: {player.player_points}\n')
 
@@ -129,7 +133,10 @@ class Game:
         self._generate_bot_players()
         self.making_a_bets()
         self.initial_deal()
-        # self.print_all_players_cards()
+        time.sleep(2)
+        print('\nLet\'s open our cards!\n')
+        time.sleep(1)
+        self.print_all_players_cards()
         self.check_winner()
         self.game_round()
         self.distribute_prizes()
