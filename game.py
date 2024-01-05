@@ -1,3 +1,10 @@
+"""
+game.py: Defines classes and functions for the main Blackjack game.
+
+This module includes the following classes and functions:
+- Game: Represents the main game controller.
+"""
+
 from deck import Deck
 from players import Dealer, BotPlayer, Player
 from constants import BOT_PLAYERS_LIMITS, NumberException
@@ -6,10 +13,39 @@ from random import shuffle
 
 
 class Game:
+    """
+        Represents the main game controller for Blackjack.
+
+        Attributes:
+        -----------
+        - max_players_count (int): Maximum number of bot players allowed in the game.
+        - min_players_count (int): Minimum number of bot players allowed in the game.
+
+        Methods:
+        --------
+        - __init__: Initializes a new game by creating a deck, dealer, and player instances.
+        - clear_cards: Clears player's hand cards and deals two new cards.
+        - reset_game: Resets the game state to the initial state.
+        - _generate_bot_players: Generates a specified number of bot players based on user input.
+        - list_of_players: Creates a list of all players in the game.
+        - open_hidden_cards: Reveals the dealer's and bot players' hidden cards.
+        - initial_deal: Deals two cards to each player at the beginning of the game.
+        - print_all_players_cards: Prints the hand cards of all players.
+        - making_a_bets: Prompts all players to make their bets.
+        - asking_card: Asks each player whether they want to hit or stand and adds cards accordingly.
+        - check_winner: Checks for winners and losers based on game conditions.
+        - game_round: Executes a round of the game, including player turns and checking for winners.
+        - distribute_prizes: Distributes prizes to the winners based on game outcomes.
+        - play_again_prompt: Prompts the player to play the game again or exit.
+        - start_game: Starts the main loop of the Blackjack game.
+        """
     max_players_count = BOT_PLAYERS_LIMITS.get('max')
     min_players_count = BOT_PLAYERS_LIMITS.get('min')
 
     def __init__(self):
+        """
+        Initializes a new game by creating a deck, dealer, and player instances.
+        """
         self.game_deck = Deck()
         self.game_dealer = Dealer()
         self.bot_players = []
@@ -17,12 +53,22 @@ class Game:
         self.all_players = []
 
     def clear_cards(self):
+        """
+        Clears player's hand cards and deals two new cards.
+
+        Returns:
+        --------
+        list: List of two new cards for the player.
+        """
         self.player.player_cards.clear()
         for _ in range(2):
             self.player.add_card(self.game_deck.get_card())
         return self.player.player_cards
 
     def reset_game(self):
+        """
+        Resets the game state to the initial state.
+        """
         self.game_deck = Deck()
         self.game_dealer = Dealer()
         self.bot_players = []
@@ -30,6 +76,13 @@ class Game:
         self.all_players = []
 
     def _generate_bot_players(self):
+        """
+        Generates a specified number of bot players based on user input.
+
+        Returns:
+        --------
+        list: List of bot players.
+        """
         while True:
             try:
                 players_count = int(input(
@@ -57,6 +110,13 @@ class Game:
         return self.bot_players
 
     def list_of_players(self):
+        """
+        Creates a list of all players in the game.
+
+        Returns:
+        --------
+        list: List of all players in the game.
+        """
         self.all_players = [self.player, self.game_dealer]
         for bot_in_list in self.bot_players:
             self.all_players.append(bot_in_list)
@@ -64,11 +124,17 @@ class Game:
         return self.all_players
 
     def open_hidden_cards(self):
+        """
+        Reveals the dealer's and bot players' hidden cards.
+        """
         self.game_dealer.reveal_card()
         for bot in self.bot_players:
             bot.reveal_card()
 
     def initial_deal(self):
+        """
+        Deals two cards to each player at the beginning of the game.
+        """
         print('\n🃏DEALER HANDS OUT CARDS🃏')
         for player in self.all_players:
             if not player.count_player_points():
@@ -83,6 +149,9 @@ class Game:
         self.open_hidden_cards()
 
     def print_all_players_cards(self):
+        """
+        Prints the hand cards of all players.
+        """
         for player in self.all_players:
             cards = player.print_cards()
             if not cards:
@@ -94,12 +163,22 @@ class Game:
             time.sleep(2)
 
     def making_a_bets(self):
+        """
+        Prompts all players to make their bets.
+        """
         print('\n💰TIME FOR BETS💰\n')
         for player in self.all_players:
             player.make_a_bet()
             time.sleep(2)
 
     def asking_card(self):
+        """
+        Asks each player whether they want to hit or stand and adds cards accordingly.
+
+        Returns:
+        --------
+        list: List of True/False values indicating whether each player chose to hit.
+        """
         answers = []
         for player in self.all_players:
             if player.hit_or_stand():
@@ -111,6 +190,13 @@ class Game:
         return answers
 
     def check_winner(self):
+        """
+        Checks for winners and losers based on game conditions.
+
+        Returns:
+        --------
+        bool: True if the game has winners, False otherwise.
+        """
         dealer_points = self.game_dealer.count_player_points()
 
         losers = [player for player in self.all_players if player.player_points > 21 and not isinstance(player, Dealer)]
@@ -152,6 +238,9 @@ class Game:
         return False  # гра триває
 
     def game_round(self):
+        """
+        Executes a round of the game, including player turns and checking for winners.
+        """
         while True:
             print('\nSo, what do we have?..')
             time.sleep(2)
@@ -176,6 +265,9 @@ class Game:
                     self.print_all_players_cards()
 
     def distribute_prizes(self):
+        """
+        Distributes prizes to the winners based on game outcomes.
+        """
         for player in self.all_players:
             if 21 > player.player_points > self.game_dealer.player_points:
                 prize = (1.5 * player.player_bet).__round__(0)
@@ -190,6 +282,13 @@ class Game:
                 time.sleep(1)
 
     def play_again_prompt(self):
+        """
+        Prompts the player to play the game again or exit.
+
+        Returns:
+        --------
+        bool: True if the player wants to play again, False otherwise.
+        """
         while True:
             try:
                 play_again_input = input('\n➡️ Do you want to play again? (y/n): ').lower().strip()
@@ -208,6 +307,9 @@ class Game:
                     return False
 
     def start_game(self):
+        """
+        Starts the main loop of the Blackjack game.
+        """
         print('👋 Hello! Nice to see you here:) Let\'s start our BLACKJACK GAME!\n'
               'Follow the tips in the game and break a leg 😎')
         time.sleep(3)
