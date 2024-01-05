@@ -39,7 +39,8 @@ class AbstractPlayer(ABC):
     def print_cards(self):
         self.player_points = self.count_player_points()
         if isinstance(self, Dealer):
-            cards_to_print = player_hand_cards(*self.player_cards) if not self.hidden_card else dealer_hand_cards(*self.player_cards)
+            cards_to_print = player_hand_cards(*self.player_cards) if not self.hidden_card else dealer_hand_cards(
+                *self.player_cards)
             return cards_to_print
         elif isinstance(self, Player):
             cards_to_print = player_hand_cards(*self.player_cards)
@@ -52,7 +53,6 @@ class AbstractPlayer(ABC):
                 return False
 
 
-
 class Player(AbstractPlayer):
     def __init__(self, name='YOU'):
         super().__init__(name)
@@ -60,13 +60,14 @@ class Player(AbstractPlayer):
     def make_a_bet(self):
         while True:
             try:
-                player_bet_input = int(input(f'\nMake your bet ({self.min_bet}$-{self.player_money}$): '))
-                if not (self.min_bet <= player_bet_input <= self.max_bet) or not (player_bet_input <= self.player_money):
+                player_bet_input = int(input(f'➡️ Make your bet ({self.min_bet}$-{self.player_money}$): '))
+                if not (self.min_bet <= player_bet_input <= self.max_bet) or not (
+                        player_bet_input <= self.player_money):
                     raise NumberException
             except (TypeError, AttributeError, ValueError):
-                print('Can\'t accept incorrect input. Try again!')
+                print('‼️Can\'t accept incorrect input. Try again!')
             except NumberException:
-                print('Your input is not in the accessible range. Please, try again!')
+                print('‼️Your input is not in the accessible range. Please, try again!')
             else:
                 self.player_bet = player_bet_input
                 break
@@ -77,11 +78,12 @@ class Player(AbstractPlayer):
     def hit_or_stand(self):
         while True:
             try:
-                player_hit_or_stand_input = input(f'\nDo you want to take one more card? (y/n): ').lower().strip()
+                player_hit_or_stand_input = input(f'➡️ Your have {self.player_points} points.'
+                                                  f'\nDo you want to take one more card? (y/n): ').lower().strip()
                 if player_hit_or_stand_input not in ['y', 'n']:
                     raise ValueError
             except ValueError:
-                print('Invalid input. Please enter "y" or "n".')
+                print('‼️Invalid input. Please enter "y" or "n".')
             else:
                 break
 
@@ -109,6 +111,7 @@ class BotPlayer(AbstractPlayer):
 
     def make_a_bet(self):
         self.player_bet = random.randint(self.min_bet, self.player_money)
+        self.player_money -= self.player_bet
         print(f'{self.name} put {self.player_bet}$')
         return self.player_bet
 
@@ -136,6 +139,7 @@ class Dealer(AbstractPlayer):
 
     def make_a_bet(self):
         self.player_bet = random.randint(self.min_bet, self.player_money)
+        self.player_money -= self.player_bet
         print(f'{self.name} put {self.player_bet}$')
         return self.player_bet
 
