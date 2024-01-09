@@ -92,11 +92,26 @@ class AbstractPlayer(ABC):
         pass
 
     @abstractmethod
-    def reveal_card(self):
+    def reveal_card(self, status):
         """
         Abstract method for revealing a card.
         """
         pass
+
+    def clear_cards(self):
+        """
+        Clears player's hand cards.
+
+        Returns:
+        --------
+        list: empty list.
+        """
+        return self.player_cards.clear()
+
+    def deal_cards(self, deck_cards):
+        for _ in range(2):
+            self.add_card(deck_cards.get_card())
+        return self.player_cards
 
     def print_cards(self):
         """
@@ -195,7 +210,7 @@ class Player(AbstractPlayer):
             print(f'{self.name} don\'t want to take anymore card.')
             return False
 
-    def reveal_card(self):
+    def reveal_card(self, status):
         """
         Not implemented for the human player.
         """
@@ -262,7 +277,7 @@ class BotPlayer(AbstractPlayer):
             print(f'{self.name} takes one more card.')
             return True
 
-    def reveal_card(self):
+    def reveal_card(self, status):
         """
         Reveals the hidden card for the bot player.
 
@@ -270,7 +285,7 @@ class BotPlayer(AbstractPlayer):
         --------
         bool: True after revealing the hidden card.
         """
-        self.hidden_card = False
+        self.hidden_card = status
         return self.hidden_card
 
 
@@ -297,7 +312,7 @@ class Dealer(AbstractPlayer):
         super().__init__(name)
         self.hidden_card = True
 
-    def reveal_card(self):
+    def reveal_card(self, status):
         """
         Reveals the hidden card for the dealer.
 
@@ -305,7 +320,7 @@ class Dealer(AbstractPlayer):
         --------
         bool: True after revealing the hidden card.
         """
-        self.hidden_card = False
+        self.hidden_card = status
         return self.hidden_card
 
     def make_a_bet(self):

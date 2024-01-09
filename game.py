@@ -52,7 +52,7 @@ class Game:
         self.player = Player()
         self.all_players = []
 
-    def clear_cards(self):
+    def clear_and_deal_cards(self):
         """
         Clears player's hand cards and deals two new cards.
 
@@ -60,9 +60,8 @@ class Game:
         --------
         list: List of two new cards for the player.
         """
-        self.player.player_cards.clear()
-        for _ in range(2):
-            self.player.add_card(self.game_deck.get_card())
+        self.player.clear_cards()
+        self.player.deal_cards(self.game_deck)
         return self.player.player_cards
 
     def reset_game(self):
@@ -72,8 +71,18 @@ class Game:
         self.game_deck = Deck()
         self.game_dealer = Dealer()
         self.bot_players = []
-        self.player.player_cards = self.clear_cards()
+        self.player.player_cards = self.clear_and_deal_cards()
         self.all_players = []
+
+    def reset_room(self):
+        """
+        Resets the game state to the initial state.
+        """
+        self.game_deck = Deck()
+        for player in self.all_players:
+            player.clear_cards()
+            player.deal_cards(self.game_deck)
+            player.reveal_card(status=True)
 
     def _generate_bot_players(self):
         """
@@ -127,9 +136,9 @@ class Game:
         """
         Reveals the dealer's and bot players' hidden cards.
         """
-        self.game_dealer.reveal_card()
+        self.game_dealer.reveal_card(status=False)
         for bot in self.bot_players:
-            bot.reveal_card()
+            bot.reveal_card(status=False)
 
     def initial_deal(self):
         """
@@ -138,8 +147,8 @@ class Game:
         print('\n🃏DEALER HANDS OUT CARDS🃏')
         for player in self.all_players:
             if not player.count_player_points():
-                for _ in range(2):
-                    player.add_card(self.game_deck.get_card())
+                player.deal_cards(self.game_deck)
+
         time.sleep(2)
         print('😎DONE')
         time.sleep(2)
@@ -205,6 +214,7 @@ class Game:
             for loser in losers:
                 print(f'☠️{loser.name}, you are busted! Hit the road!')
                 self.all_players.remove(loser)
+                time.sleep(1)
 
         if dealer_points > 21:
             print('\n🤑The DEALER is busted! All players in the game are winners!')
@@ -306,6 +316,29 @@ class Game:
                 else:
                     return False
 
+    def room_promt(self):
+        """
+        Prompts the player to play the game again in the same room or exit.
+
+        Returns:
+        --------
+        bool: True if the player wants to play again, False otherwise.
+        """
+        while True:
+            try:
+                room_input = input('\n➡️ Stay in this room? (y/n): ').lower().strip()
+                if room_input not in ['y', 'n']:
+                    raise ValueError
+            except ValueError:
+                print('‼️Invalid input. Please enter "y" or "n".')
+            else:
+                if room_input == 'y':
+                    self.reset_room()
+                    return True
+                else:
+                    return False
+
+
     def start_game(self):
         """
         Starts the main loop of the Blackjack game.
@@ -313,9 +346,9 @@ class Game:
         print('👋 Hello! Nice to see you here:) Let\'s start our BLACKJACK GAME!\n'
               'Follow the tips in the game and break a leg 😎')
         time.sleep(3)
+        self._generate_bot_players()
 
         while True:
-            self._generate_bot_players()
             self.making_a_bets()
             self.initial_deal()
             time.sleep(3)
@@ -329,5 +362,7 @@ class Game:
             if not self.play_again_prompt():
                 print('👋 Thank you for playing! Have a great day!')
                 break
-            else:
-                self.reset_game()  # Якщо гравець хоче грати ще раз, скидаємо гру до початкового стану
+            if len(self.all_players) > 1:
+                if not self.room_promt():
+                    self.reset_game()
+                    self._generate_bot_players()
