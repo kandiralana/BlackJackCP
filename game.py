@@ -74,6 +74,11 @@ class Game:
         self.player.player_cards = self.clear_and_deal_cards()
         self.all_players = []
 
+        time.sleep(2)
+        print('*' * 100)
+        print('\nGlad to see you again! You are thr lucky one if you still have some money😎')
+        time.sleep(3)
+
     def reset_room(self):
         """
         Resets the game state to the initial state.
@@ -83,6 +88,12 @@ class Game:
             player.clear_cards()
             player.deal_cards(self.game_deck)
             player.reveal_card(status=True)
+
+        time.sleep(2)
+        print('*' * 100)
+        print('\nSeems you\'re fall in love with the dealer!'
+              '\nHow else to explain that you are still here?! OK, another game 😎')
+        time.sleep(3)
 
     def _generate_bot_players(self):
         """
@@ -312,6 +323,8 @@ class Game:
                         print("☠️ Sorry, you don't have enough money for the minimum bet. Game over.")
                         return False
                     else:
+                        if self.game_dealer not in self.all_players:
+                            self.all_players.append(self.game_dealer)
                         return True
                 else:
                     return False
@@ -324,20 +337,22 @@ class Game:
         --------
         bool: True if the player wants to play again, False otherwise.
         """
-        while True:
-            try:
-                room_input = input('\n➡️ Stay in this room? (y/n): ').lower().strip()
-                if room_input not in ['y', 'n']:
-                    raise ValueError
-            except ValueError:
-                print('‼️Invalid input. Please enter "y" or "n".')
-            else:
-                if room_input == 'y':
-                    self.reset_room()
-                    return True
+        if len(self.all_players) > 2 and self.player in self.all_players:
+            while True:
+                try:
+                    room_input = input('\n➡️ Stay in this room? (y/n): ').lower().strip()
+                    if room_input not in ['y', 'n']:
+                        raise ValueError
+                except ValueError:
+                    print('‼️Invalid input. Please enter "y" or "n".')
                 else:
-                    return False
-
+                    if room_input == 'y':
+                        self.reset_room()
+                        return True
+                    else:
+                        return False
+        else:
+            return False
 
     def start_game(self):
         """
@@ -362,7 +377,7 @@ class Game:
             if not self.play_again_prompt():
                 print('👋 Thank you for playing! Have a great day!')
                 break
-            if len(self.all_players) > 1:
+            else:
                 if not self.room_promt():
                     self.reset_game()
                     self._generate_bot_players()
